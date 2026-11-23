@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Receipt {{ payment.receipt_no }} | Campus Finance{% endblock %}
+{% block page_heading %}Payment receipt{% endblock %}
+{% block content %}
+<div class="page-heading no-print"><div><div class="eyebrow">PAYMENT CONFIRMATION</div><h1>Receipt</h1><p>Official record of a payment entered by the college.</p></div><a class="button primary" href="{{ url_for('receipt_pdf', payment_id=payment.id) }}">Download PDF</a></div>
+<article class="receipt-sheet">
+  <div class="receipt-top"><div class="brand"><span class="brand-mark">CF</span><span><strong>Campus Finance</strong><small>College fee management</small></span></div><span class="status paid">PAYMENT RECORDED</span></div>
+  <h2>Fee payment receipt</h2><p class="muted">Receipt no. <span class="mono">{{ payment.receipt_no }}</span></p>
+  <div class="receipt-amount"><small>Amount received</small><strong>₹{{ "%.2f"|format(payment.amount|float) }}</strong></div>
+  <div class="receipt-details">
+    <div><small>Student name</small><strong>{{ payment.student.full_name }}</strong></div>
+    <div><small>Student ID</small><strong>{{ payment.student.student_id or "—" }}</strong></div>
+    <div><small>Fee</small><strong>{{ payment.fee.fee_name }}</strong></div>
+    <div><small>Academic year</small><strong>{{ payment.fee.academic_year }}</strong></div>
+    <div><small>Payment method</small><strong>{{ payment.payment_method }}</strong></div>
+    <div><small>Payment date</small><strong>{{ payment.paid_at.strftime("%d %B %Y, %I:%M %p") }}</strong></div>
+    <div><small>Transaction reference</small><strong>{{ payment.reference or "—" }}</strong></div>
+  </div>
+  <p class="receipt-foot">This receipt confirms a payment record stored in the college fee management system. Retain it for your records.</p>
+</article>
+{% endblock %}
