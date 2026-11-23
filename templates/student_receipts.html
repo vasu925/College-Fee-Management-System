@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}My receipts | Campus Finance{% endblock %}
+{% block page_heading %}My receipts{% endblock %}
+{% block content %}
+<div class="page-heading"><div><div class="eyebrow">PAYMENT HISTORY</div><h1>My receipts</h1><p>Receipts for payments recorded against your student account.</p></div></div>
+<section class="panel"><div class="table-wrap"><table><thead><tr><th>Receipt number</th><th>Fee</th><th>Method</th><th>Amount</th><th>Date</th><th></th></tr></thead><tbody>
+{% for p in payments %}<tr><td class="mono">{{ p.receipt_no }}</td><td>{{ p.fee.fee_name }}</td><td>{{ p.payment_method }}</td><td>₹{{ "%.2f"|format(p.amount|float) }}</td><td>{{ p.paid_at.strftime("%d %b %Y") }}</td><td><a class="text-link" href="{{ url_for('receipt', payment_id=p.id) }}">Open receipt</a></td></tr>{% else %}<tr><td colspan="6" class="empty-cell">No receipts found.</td></tr>{% endfor %}
+</tbody></table></div></section>
+{% endblock %}
