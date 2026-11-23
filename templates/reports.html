@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Reports | Campus Finance{% endblock %}
+{% block page_heading %}Reports{% endblock %}
+{% block content %}
+<div class="page-heading"><div><div class="eyebrow">FINANCIAL SUMMARY</div><h1>Reports</h1><p>Totals reflect the fee assignments and payments currently stored in the database.</p></div></div>
+<div class="metric-grid three">
+  <article class="metric-card"><span>Total assigned</span><strong>₹{{ "%.2f"|format(total|float) }}</strong></article>
+  <article class="metric-card"><span>Total recorded</span><strong>₹{{ "%.2f"|format(paid|float) }}</strong></article>
+  <article class="metric-card"><span>Outstanding</span><strong>₹{{ "%.2f"|format(outstanding|float) }}</strong></article>
+</div>
+<section class="panel"><div class="section-head"><div><h2>Fee-level report</h2><p>Each assignment with its current paid and outstanding balance.</p></div></div>
+<div class="table-wrap"><table><thead><tr><th>Student</th><th>Student ID</th><th>Fee / Year</th><th>Assigned</th><th>Paid</th><th>Balance</th><th>Status</th></tr></thead><tbody>
+{% for f in fees %}<tr><td>{{ f.student.full_name }}</td><td>{{ f.student.student_id }}</td><td>{{ f.fee_name }}<small class="table-sub">{{ f.academic_year }}</small></td><td>₹{{ "%.2f"|format(f.total_amount|float) }}</td><td>₹{{ "%.2f"|format(f.paid_amount|float) }}</td><td>₹{{ "%.2f"|format(f.balance|float) }}</td><td><span class="status {{ 'paid' if f.balance == 0 else 'pending' }}">{{ "Paid" if f.balance == 0 else "Pending" }}</span></td></tr>{% else %}<tr><td colspan="7" class="empty-cell">No fee records to report.</td></tr>{% endfor %}
+</tbody></table></div></section>
+{% endblock %}
