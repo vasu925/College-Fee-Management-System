@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Fee assignments | Campus Finance{% endblock %}
+{% block page_heading %}Fee assignments{% endblock %}
+{% block content %}
+<div class="page-heading"><div><div class="eyebrow">FEE ADMINISTRATION</div><h1>Fee assignments</h1><p>Assign a fee and due date to an individual student.</p></div></div>
+<div class="two-column">
+<section class="panel">
+  <div class="section-head"><div><h2>Assign a fee</h2><p>Amounts are recorded in Indian rupees.</p></div></div>
+  <form method="post" class="form-stack compact">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label>Student<select name="student_id" required><option value="">Select student</option>{% for s in students %}<option value="{{ s.id }}">{{ s.full_name }} · {{ s.student_id }}</option>{% endfor %}</select></label>
+    <label>Fee name<input name="fee_name" placeholder="Tuition fee" required maxlength="120"></label>
+    <label>Academic year<input name="academic_year" placeholder="2026-2027" required maxlength="30"></label>
+    <label>Total amount (₹)<input type="number" name="total_amount" min="0.01" max="99999999.99" step="0.01" required></label>
+    <label>Due date<input type="date" name="due_date"></label>
+    <button class="button primary" type="submit">Assign fee</button>
+  </form>
+</section>
+<section class="panel">
+  <div class="section-head"><div><h2>Assigned fees</h2><p>Balance is calculated from recorded payments.</p></div></div>
+  <div class="table-wrap"><table><thead><tr><th>Student / Fee</th><th>Assigned</th><th>Paid</th><th>Balance</th></tr></thead><tbody>
+  {% for f in fees %}<tr><td><strong>{{ f.student.full_name }}</strong><small class="table-sub">{{ f.fee_name }} · {{ f.academic_year }}</small></td><td>₹{{ "%.2f"|format(f.total_amount|float) }}</td><td>₹{{ "%.2f"|format(f.paid_amount|float) }}</td><td class="amount">₹{{ "%.2f"|format(f.balance|float) }}</td></tr>{% else %}<tr><td colspan="4" class="empty-cell">No fee assignments yet.</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+</div>
+{% endblock %}
