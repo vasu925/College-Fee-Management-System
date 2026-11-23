@@ -26,6 +26,7 @@
       <a class="nav-link" href="{{ url_for('reports') }}">Reports</a>
     {% elif current_user.role == 'teacher' %}
       <a class="nav-link" href="{{ url_for('teacher_dashboard') }}">Overview</a>
+      <a class="nav-link" href="{{ url_for('teacher_fees') }}">All fee records</a>
       <a class="nav-link" href="{{ url_for('payments') }}">Payments</a>
     {% else %}
       <a class="nav-link" href="{{ url_for('student_dashboard') }}">My fee summary</a>
