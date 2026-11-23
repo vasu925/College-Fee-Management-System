@@ -8,6 +8,12 @@
   <article class="metric-card"><span>Paid</span><strong>₹{{ "%.2f"|format(paid|float) }}</strong></article>
   <article class="metric-card"><span>Outstanding</span><strong>₹{{ "%.2f"|format(balance|float) }}</strong></article>
 </div>
+<section class="panel">
+  <div class="section-head"><div><h2>Krishna University examination fee</h2><p>Pay examination and other eligible university fees through the official Krishna University payment instructions.</p></div></div>
+  <p>Continue to the university's official payment page. Select the relevant fee category and verify your hall ticket or college details and amount before paying. The payment is completed on the university/SBI website, not inside Campus Finance.</p>
+  <p><a class="button button-primary" href="https://kru.ac.in/payment-krue/" target="_blank" rel="noopener noreferrer">Pay Krishna University exam fee ↗</a></p>
+  <p class="muted">After payment, save the official SBI/university receipt and transaction reference. This website does not receive automatic payment confirmation. Your college accounts office must verify the payment before it is recorded here. This link is for Krishna University examination-related payments only, not a promise that college tuition fees are accepted there.</p>
+</section>
 <section class="panel"><div class="section-head"><div><h2>Your fee assignments</h2><p>Contact the college accounts office if you believe a record is incorrect.</p></div></div>
 <div class="table-wrap"><table><thead><tr><th>Fee</th><th>Academic year</th><th>Due date</th><th>Assigned</th><th>Paid</th><th>Balance</th><th>Status</th></tr></thead><tbody>
 {% for f in fees %}<tr><td>{{ f.fee_name }}</td><td>{{ f.academic_year }}</td><td>{{ f.due_date.strftime("%d %b %Y") if f.due_date else "—" }}</td><td>₹{{ "%.2f"|format(f.total_amount|float) }}</td><td>₹{{ "%.2f"|format(f.paid_amount|float) }}</td><td>₹{{ "%.2f"|format(f.balance|float) }}</td><td><span class="status {{ 'paid' if f.balance == 0 else 'pending' }}">{{ "Paid" if f.balance == 0 else "Pending" }}</span></td></tr>{% else %}<tr><td colspan="7" class="empty-cell">No fee assignments have been added to your account.</td></tr>{% endfor %}
