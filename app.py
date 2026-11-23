@@ -1,5 +1,6 @@
 import os
 import secrets
+from urllib.parse import urlsplit, urlunsplit, quote
 from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
 from functools import wraps
@@ -20,10 +21,28 @@ load_dotenv()
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY") or secrets.token_hex(32)
-app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv(
-    "DATABASE_URL",
-    "postgresql+psycopg://postgres:YOUR_DATABASE_PASSWORD@db.tgoxglzjwwvigvahoxml.supabase.co:5432/postgres?sslmode=require"
-)
+def get_database_url():
+    database_url = os.getenv(
+        "DATABASE_URL",
+        "postgresql+psycopg://postgres:YOUR_DATABASE_PASSWORD@db.tgoxglzjwwvigvahoxml.supabase.co:5432/postgres?sslmode=require"
+    )
+    # Vercel serverless runtimes may not have IPv6 egress. Route Supabase
+    # direct database URLs through the project's IPv4-compatible session pooler.
+    parsed = urlsplit(database_url)
+    hostname = parsed.hostname or ""
+    if hostname.startswith("db.") and hostname.endswith(".supabase.co"):
+        project_ref = hostname[3:].removesuffix(".supabase.co")
+        region = os.getenv("SUPABASE_REGION", "ap-south-1")
+        username = parsed.username or "postgres"
+        password = parsed.password or ""
+        user = quote(f"{username}.{project_ref}", safe="")
+        auth = user + (":" + quote(password, safe="") if password else "")
+        netloc = f"{auth}@aws-0-{region}.pooler.supabase.com:5432"
+        database_url = urlunsplit((parsed.scheme, netloc, parsed.path or "/postgres",
+                                   parsed.query or "sslmode=require", parsed.fragment))
+    return database_url
+
+app.config["SQLALCHEMY_DATABASE_URI"] = get_database_url()
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
