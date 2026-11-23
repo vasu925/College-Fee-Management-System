@@ -24,6 +24,7 @@
       <a class="nav-link" href="{{ url_for('fees') }}">Fee assignments</a>
       <a class="nav-link" href="{{ url_for('payments') }}">Payments</a>
       <a class="nav-link" href="{{ url_for('reports') }}">Reports</a>
+      <a class="nav-link" href="{{ url_for('admin_change_password') }}">Change password</a>
     {% elif current_user.role == 'teacher' %}
       <a class="nav-link" href="{{ url_for('teacher_dashboard') }}">Overview</a>
       <a class="nav-link" href="{{ url_for('teacher_fees') }}">All fee records</a>
