@@ -177,7 +177,14 @@ def register():
 def setup_once():
     # Temporary, token-protected first-admin bootstrap for a fresh database.
     bootstrap_token = os.getenv("BOOTSTRAP_TOKEN", "")
-    if not bootstrap_token or User.query.filter_by(role="admin").first():
+    if not bootstrap_token:
+        abort(404)
+    try:
+        db.create_all()
+    except Exception:
+        app.logger.exception("Database initialization failed during first-admin setup")
+        abort(503)
+    if User.query.filter_by(role="admin").first():
         abort(404)
     if request.method == "POST":
         supplied = request.form.get("token", "")
