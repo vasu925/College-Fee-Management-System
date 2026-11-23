@@ -1,6 +1,5 @@
 import os
 import secrets
-from urllib.parse import urlsplit, urlunsplit, quote
 from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
 from functools import wraps
@@ -12,7 +11,8 @@ from flask import Flask, abort, flash, make_response, redirect, render_template,
 from flask_wtf.csrf import CSRFProtect
 from flask_login import LoginManager, UserMixin, current_user, login_required, login_user, logout_user
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import func, or_
+from sqlalchemy import func, or_, text
+from sqlalchemy.engine import make_url
 from werkzeug.security import check_password_hash, generate_password_hash
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
@@ -22,33 +22,28 @@ load_dotenv()
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY") or secrets.token_hex(32)
 def get_database_url():
-    database_url = os.getenv(
-        "DATABASE_URL",
-        "postgresql+psycopg://postgres:YOUR_DATABASE_PASSWORD@db.tgoxglzjwwvigvahoxml.supabase.co:5432/postgres?sslmode=require"
-    )
-    # Vercel serverless runtimes may not have IPv6 egress. Route Supabase
-    # direct database URLs through the project's IPv4-compatible session pooler.
-    parsed = urlsplit(database_url)
-    # Aiven provides PostgreSQL URIs; use the psycopg 3 SQLAlchemy driver.
-    if parsed.scheme in {"postgres", "postgresql"}:
-        database_url = urlunsplit(("postgresql+psycopg", parsed.netloc, parsed.path,
-                                   parsed.query, parsed.fragment))
-        parsed = urlsplit(database_url)
-    hostname = parsed.hostname or ""
-    if hostname.startswith("db.") and hostname.endswith(".supabase.co"):
-        project_ref = hostname[3:].removesuffix(".supabase.co")
-        region = os.getenv("SUPABASE_REGION", "ap-south-1")
-        username = parsed.username or "postgres"
-        password = parsed.password or ""
-        user = quote(f"{username}.{project_ref}", safe="")
-        auth = user + (":" + quote(password, safe="") if password else "")
-        netloc = f"{auth}@aws-0-{region}.pooler.supabase.com:5432"
-        database_url = urlunsplit((parsed.scheme, netloc, parsed.path or "/postgres",
-                                   parsed.query or "sslmode=require", parsed.fragment))
-    return database_url
+    """Load and validate the configured PostgreSQL URL without guessing credentials."""
+    raw_url = os.getenv("DATABASE_URL", "").strip()
+    if not raw_url or "YOUR_DATABASE_PASSWORD" in raw_url:
+        raise RuntimeError("DATABASE_URL is missing or still contains a placeholder.")
+
+    try:
+        parsed = make_url(raw_url)
+    except Exception as exc:
+        raise RuntimeError("DATABASE_URL is not a valid SQLAlchemy database URL.") from exc
+
+    if parsed.drivername in {"postgres", "postgresql"}:
+        parsed = parsed.set(drivername="postgresql+psycopg")
+    if parsed.drivername != "postgresql+psycopg":
+        raise RuntimeError("DATABASE_URL must use PostgreSQL with the psycopg 3 driver.")
+    if not parsed.host or not parsed.database or not parsed.username or parsed.password is None:
+        raise RuntimeError("DATABASE_URL must include host, database, username and password.")
+
+    return parsed.render_as_string(hide_password=False)
 
 app.config["SQLALCHEMY_DATABASE_URI"] = get_database_url()
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {"pool_pre_ping": True, "pool_recycle": 300}
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 app.config["SESSION_COOKIE_SECURE"] = os.getenv("COOKIE_SECURE", "false").lower() == "true"
@@ -139,6 +134,18 @@ def student_required(fn):
 @app.context_processor
 def inject_globals():
     return {"current_year": datetime.now().year}
+
+
+@app.get("/health/db")
+def database_health():
+    """Safe connectivity probe; never returns connection details or credentials."""
+    try:
+        with db.engine.connect() as connection:
+            connection.execute(text("SELECT 1"))
+    except Exception:
+        app.logger.exception("Database health check failed")
+        return {"status": "error", "database": "unavailable"}, 503
+    return {"status": "ok", "database": "connected"}, 200
 
 
 @app.route("/")
