@@ -1,6 +1,6 @@
 # College Fee Management System
 
-A Flask + MySQL college fee administration application with separate administrator and student access.
+A Flask + Supabase PostgreSQL college fee administration application with separate administrator and student access.
 
 ## Included
 - Administrator login and student login
@@ -17,18 +17,21 @@ A Flask + MySQL college fee administration application with separate administrat
 
 ## Requirements
 - Python 3.10+
-- MySQL 8+
+- Supabase PostgreSQL project
 - VS Code or another Python editor
 
-## 1. Create the MySQL database user
-Open MySQL Workbench or the MySQL command line and run `schema.sql`.
-Replace the sample database password in that file with a strong password.
+## 1. Configure Supabase
+This repository is configured for the Supabase project in the Mumbai region.
+
+Project reference: `tgoxglzjwwvigvahoxml`
+
+In Supabase Dashboard, open **Project Settings > Database** and copy the database password/connection details. Do not share the password in chat or commit it to GitHub.
 
 ## 2. Set up Python
 Windows PowerShell:
 ```powershell
 py -m venv .venv
-.venv\Scripts\Activate.ps1
+.venv\\Scripts\\Activate.ps1
 pip install -r requirements.txt
 Copy-Item .env.example .env
 ```
@@ -43,10 +46,14 @@ cp .env.example .env
 
 Edit `.env`:
 - Set `SECRET_KEY` to a long random secret.
-- Set `DATABASE_URL` to match the MySQL username and password you created.
+- Replace `YOUR_DATABASE_PASSWORD` in `DATABASE_URL` with the database password from Supabase.
+- Keep the connection string format as `postgresql+psycopg://postgres:PASSWORD@db.tgoxglzjwwvigvahoxml.supabase.co:5432/postgres?sslmode=require`.
 - Keep `COOKIE_SECURE=false` only for local HTTP development.
 
+If your database password contains special characters, URL-encode the password portion before placing it in the connection string.
+
 ## 3. Create tables and administrator
+The Supabase database has the application tables provisioned. To synchronize/verify the schema from the Flask models, run:
 ```bash
 flask --app app init-db
 flask --app app create-admin
@@ -65,15 +72,14 @@ The first login page is `/login`. Create student accounts from Admin > Students.
 This build records payments that the college has actually received through an offline or external payment process. It does not collect card/UPI credentials and does not claim to process online payments. An administrator records the payment method and optional transaction reference. The system generates a receipt from that record.
 
 ## Before public launch
-This source package is not a live deployment. Do not publish it with the sample `.env` values. Before launch:
+This source package is not a live deployment. Do not publish it with sample `.env` values. Before launch:
 1. Deploy behind HTTPS and set `COOKIE_SECURE=true`.
-2. Set a strong production `SECRET_KEY` and production MySQL credentials in the hosting provider's secret manager.
+2. Set a strong production `SECRET_KEY` and production Supabase database credentials in the hosting provider's secret manager.
 3. Connect a domain you own, update DNS at your registrar and verify HTTPS.
 4. Replace the college identity/contact placeholders in the legal pages with approved institutional details and have the college review them.
 5. Add the final institution name/logo and update the receipt heading.
 6. Configure database backups, monitoring, access controls and a tested recovery process.
 7. Verify the deployed favicon at `/static/favicon.svg`.
-8. Confirm that no hosting platform branding is injected by the selected host. This project itself contains no "Made with AI" badge.
 
 ## Important
 - Only authorized college personnel should create student accounts and record payments.
