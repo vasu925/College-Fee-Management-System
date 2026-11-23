@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Initial administrator setup{% endblock %}
+{% block page_heading %}Initial administrator setup{% endblock %}
+{% block content %}
+<section class="panel" style="max-width:560px;margin:2rem auto">
+  <div class="eyebrow">ONE-TIME SETUP</div>
+  <h1>Create the first administrator</h1>
+  <p>This initializes the database tables and creates the first admin account. This page closes automatically after successful setup.</p>
+  <form method="post" class="form-stack">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label>Setup token<input name="token" type="password" autocomplete="off" required></label>
+    <label>Full name<input name="full_name" required maxlength="120"></label>
+    <label>Admin email<input name="email" type="email" required maxlength="160"></label>
+    <label>New admin password<input name="password" type="password" minlength="12" autocomplete="new-password" required><small>Use at least 12 characters. Do not reuse a password from another account.</small></label>
+    <button class="button primary" type="submit">Initialize database and create admin</button>
+  </form>
+</section>
+{% endblock %}
