@@ -29,6 +29,11 @@ def get_database_url():
     # Vercel serverless runtimes may not have IPv6 egress. Route Supabase
     # direct database URLs through the project's IPv4-compatible session pooler.
     parsed = urlsplit(database_url)
+    # Aiven provides PostgreSQL URIs; use the psycopg 3 SQLAlchemy driver.
+    if parsed.scheme in {"postgres", "postgresql"}:
+        database_url = urlunsplit(("postgresql+psycopg", parsed.netloc, parsed.path,
+                                   parsed.query, parsed.fragment))
+        parsed = urlsplit(database_url)
     hostname = parsed.hostname or ""
     if hostname.startswith("db.") and hostname.endswith(".supabase.co"):
         project_ref = hostname[3:].removesuffix(".supabase.co")
