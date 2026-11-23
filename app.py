@@ -231,6 +231,34 @@ def logout():
     return redirect(url_for("login"))
 
 
+@app.route("/admin/change-password", methods=["GET", "POST"])
+@admin_required
+def admin_change_password():
+    if request.method == "POST":
+        current_password = request.form.get("current_password", "")
+        new_password = request.form.get("new_password", "")
+        confirm_password = request.form.get("confirm_password", "")
+
+        if not check_password_hash(current_user.password_hash, current_password):
+            flash("Your current password is incorrect.", "error")
+        elif len(new_password) < 12:
+            flash("New password must be at least 12 characters.", "error")
+        elif new_password != confirm_password:
+            flash("The new passwords do not match.", "error")
+        elif check_password_hash(current_user.password_hash, new_password):
+            flash("Choose a password different from your current password.", "error")
+        else:
+            user = db.session.get(User, current_user.id)
+            user.password_hash = generate_password_hash(new_password)
+            db.session.commit()
+            logout_user()
+            session.clear()
+            flash("Password changed successfully. Please sign in with your new password.", "success")
+            return redirect(url_for("login"))
+
+    return render_template("admin_change_password.html")
+
+
 @app.route("/admin")
 @admin_required
 def admin_dashboard():
