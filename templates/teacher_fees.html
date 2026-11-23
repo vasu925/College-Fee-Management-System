@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}All fee records | Campus Finance{% endblock %}
+{% block page_heading %}All fee records{% endblock %}
+{% block content %}
+<div class="page-heading"><div><div class="eyebrow">FEE RECORDS</div><h1>All student fee records</h1><p>Read-only fee assignments across the college. Record collections from Payments.</p></div><a class="button primary" href="{{ url_for('payments') }}">Record payment</a></div>
+<section class="panel"><div class="table-wrap"><table><thead><tr><th>Student</th><th>Student ID</th><th>Fee</th><th>Academic year</th><th>Assigned</th><th>Paid</th><th>Balance</th></tr></thead><tbody>
+{% for f in fees %}<tr><td>{{ f.student.full_name }}</td><td>{{ f.student.student_id or "—" }}</td><td>{{ f.fee_name }}</td><td>{{ f.academic_year }}</td><td>₹{{ "%.2f"|format(f.total_amount|float) }}</td><td>₹{{ "%.2f"|format(f.paid_amount|float) }}</td><td>₹{{ "%.2f"|format(f.balance|float) }}</td></tr>{% else %}<tr><td colspan="7" class="empty-cell">No fee assignments yet.</td></tr>{% endfor %}
+</tbody></table></div></section>
+{% endblock %}
