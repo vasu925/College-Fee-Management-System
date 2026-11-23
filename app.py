@@ -162,6 +162,39 @@ def login():
     return render_template("login.html")
 
 
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if current_user.is_authenticated:
+        return redirect(url_for("student_dashboard" if current_user.role == "student" else "admin_dashboard"))
+    if request.method == "POST":
+        name = request.form.get("full_name", "").strip()
+        email = request.form.get("email", "").strip().lower()
+        sid = request.form.get("student_id", "").strip()
+        department = request.form.get("department", "").strip()
+        year = request.form.get("academic_year", "").strip()
+        password = request.form.get("password", "")
+        confirm = request.form.get("confirm_password", "")
+        if not all([name, email, sid, password, confirm]):
+            flash("Complete all required fields.", "error")
+        elif password != confirm:
+            flash("The passwords do not match.", "error")
+        elif len(password) < 10:
+            flash("Password must be at least 10 characters.", "error")
+        elif User.query.filter(or_(User.email == email, User.student_id == sid)).first():
+            flash("That email address or student ID is already registered. Contact the college office if you need access.", "error")
+        else:
+            student = User(full_name=name, email=email, student_id=sid,
+                           department=department or None, academic_year=year or None,
+                           password_hash=generate_password_hash(password), role="student")
+            db.session.add(student)
+            db.session.commit()
+            login_user(student)
+            session.permanent = False
+            flash("Student account created. Your fee details will appear after the college assigns them.", "success")
+            return redirect(url_for("student_dashboard"))
+    return render_template("register.html")
+
+
 @app.post("/logout")
 @login_required
 def logout():
