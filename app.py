@@ -139,14 +139,14 @@ def inject_globals():
 @app.route("/")
 def index():
     if current_user.is_authenticated:
-        return redirect(url_for("admin_dashboard" if current_user.role == "admin" else "student_dashboard"))
+        return redirect(url_for("admin_dashboard" if current_user.role == "admin" else ("teacher_dashboard" if current_user.role == "teacher" else "student_dashboard")))
     return redirect(url_for("login"))
 
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for("admin_dashboard" if current_user.role == "admin" else "student_dashboard"))
+        return redirect(url_for("admin_dashboard" if current_user.role == "admin" else ("teacher_dashboard" if current_user.role == "teacher" else "student_dashboard")))
     if request.method == "POST":
         identity = request.form.get("identity", "").strip()
         password = request.form.get("password", "")
@@ -157,7 +157,7 @@ def login():
             next_url = request.args.get("next")
             if next_url and next_url.startswith("/") and not next_url.startswith("//"):
                 return redirect(next_url)
-            return redirect(url_for("admin_dashboard" if user.role == "admin" else "student_dashboard"))
+            return redirect(url_for("admin_dashboard" if user.role == "admin" else ("teacher_dashboard" if user.role == "teacher" else "student_dashboard")))
         flash("Email or password is incorrect.", "error")
     return render_template("login.html")
 
@@ -313,6 +313,15 @@ def payments():
     fee_rows = Fee.query.order_by(Fee.created_at.desc()).all()
     payment_rows = Payment.query.order_by(Payment.paid_at.desc()).limit(100).all()
     return render_template("payments.html", fees=fee_rows, payments=payment_rows)
+
+
+@app.route("/teacher/fees")
+@login_required
+def teacher_fees():
+    if current_user.role != "teacher":
+        abort(403)
+    rows = Fee.query.order_by(Fee.created_at.desc()).all()
+    return render_template("teacher_fees.html", fees=rows)
 
 
 @app.route("/teacher")
