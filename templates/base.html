@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="College Fee Management System">
+  <title>{% block title %}College Fee Management{% endblock %}</title>
+  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+  <script defer src="{{ url_for('static', filename='js/app.js') }}"></script>
+</head>
+<body>
+{% if current_user.is_authenticated %}
+<div class="app-shell">
+  <aside class="sidebar" id="sidebar">
+    <a class="brand" href="{{ url_for('admin_dashboard' if current_user.role == 'admin' else 'student_dashboard') }}">
+      <span class="brand-mark">CF</span><span><strong>Campus Finance</strong><small>Fee management</small></span>
+    </a>
+    <div class="side-label">WORKSPACE</div>
+    {% if current_user.role == 'admin' %}
+      <a class="nav-link" href="{{ url_for('admin_dashboard') }}">Overview</a>
+      <a class="nav-link" href="{{ url_for('students') }}">Students</a>
+      <a class="nav-link" href="{{ url_for('fees') }}">Fee assignments</a>
+      <a class="nav-link" href="{{ url_for('payments') }}">Payments</a>
+      <a class="nav-link" href="{{ url_for('reports') }}">Reports</a>
+    {% else %}
+      <a class="nav-link" href="{{ url_for('student_dashboard') }}">My fee summary</a>
+      <a class="nav-link" href="{{ url_for('student_receipts') }}">My receipts</a>
+    {% endif %}
+    <div class="sidebar-bottom">
+      <div class="account-card"><span class="avatar">{{ current_user.full_name[:1]|upper }}</span><span><strong>{{ current_user.full_name }}</strong><small>{{ current_user.role|title }}</small></span></div>
+      <form method="post" action="{{ url_for('logout') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="signout" type="submit">Sign out</button>
+      </form>
+    </div>
+  </aside>
+  <main class="main-area">
+    <header class="topbar">
+      <button class="menu-toggle" type="button" data-menu-toggle aria-label="Toggle navigation">☰</button>
+      <div class="topbar-title">{% block page_heading %}Workspace{% endblock %}</div>
+      <div class="topbar-right">{{ current_user.email }}</div>
+    </header>
+    <div class="content">
+{% else %}
+<main class="public-shell">
+{% endif %}
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}<div class="flash-stack">{% for category, message in messages %}<div class="flash {{ category }}">{{ message }}</div>{% endfor %}</div>{% endif %}
+      {% endwith %}
+      {% block content %}{% endblock %}
+{% if current_user.is_authenticated %}
+    </div>
+    <footer class="app-footer">© {{ current_year }} Campus Finance · <a href="{{ url_for('privacy') }}">Privacy</a> · <a href="{{ url_for('terms') }}">Terms</a></footer>
+  </main>
+</div>
+{% else %}
+  <footer class="public-footer">© {{ current_year }} Campus Finance · <a href="{{ url_for('privacy') }}">Privacy Policy</a> · <a href="{{ url_for('terms') }}">Terms and Conditions</a></footer>
+</main>
+{% endif %}
+</body>
+</html>
