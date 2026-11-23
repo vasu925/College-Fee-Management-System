@@ -148,9 +148,9 @@ def login():
     if current_user.is_authenticated:
         return redirect(url_for("admin_dashboard" if current_user.role == "admin" else "student_dashboard"))
     if request.method == "POST":
-        email = request.form.get("email", "").strip().lower()
+        identity = request.form.get("identity", "").strip()
         password = request.form.get("password", "")
-        user = User.query.filter_by(email=email).first()
+        user = User.query.filter(or_(func.lower(User.email) == identity.lower(), User.student_id == identity)).first()
         if user and check_password_hash(user.password_hash, password):
             login_user(user)
             session.permanent = False
@@ -164,35 +164,8 @@ def login():
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
-    if current_user.is_authenticated:
-        return redirect(url_for("student_dashboard" if current_user.role == "student" else "admin_dashboard"))
-    if request.method == "POST":
-        name = request.form.get("full_name", "").strip()
-        email = request.form.get("email", "").strip().lower()
-        sid = request.form.get("student_id", "").strip()
-        department = request.form.get("department", "").strip()
-        year = request.form.get("academic_year", "").strip()
-        password = request.form.get("password", "")
-        confirm = request.form.get("confirm_password", "")
-        if not all([name, email, sid, password, confirm]):
-            flash("Complete all required fields.", "error")
-        elif password != confirm:
-            flash("The passwords do not match.", "error")
-        elif len(password) < 10:
-            flash("Password must be at least 10 characters.", "error")
-        elif User.query.filter(or_(User.email == email, User.student_id == sid)).first():
-            flash("That email address or student ID is already registered. Contact the college office if you need access.", "error")
-        else:
-            student = User(full_name=name, email=email, student_id=sid,
-                           department=department or None, academic_year=year or None,
-                           password_hash=generate_password_hash(password), role="student")
-            db.session.add(student)
-            db.session.commit()
-            login_user(student)
-            session.permanent = False
-            flash("Student account created. Your fee details will appear after the college assigns them.", "success")
-            return redirect(url_for("student_dashboard"))
-    return render_template("register.html")
+    flash("Accounts are issued by your college administrator. Please contact the college office.", "info")
+    return redirect(url_for("login"))
 
 
 @app.post("/logout")
@@ -260,6 +233,26 @@ def delete_student(student_id):
     return redirect(url_for("students"))
 
 
+@app.route("/admin/teachers", methods=["GET", "POST"])
+@admin_required
+def teachers():
+    if request.method == "POST":
+        name = request.form.get("full_name", "").strip()
+        email = request.form.get("email", "").strip().lower()
+        password = request.form.get("password", "")
+        if not name or not email or len(password) < 12:
+            flash("Enter a name, email and password of at least 12 characters.", "error")
+        elif User.query.filter_by(email=email).first():
+            flash("That email is already registered.", "error")
+        else:
+            db.session.add(User(full_name=name, email=email, password_hash=generate_password_hash(password), role="teacher"))
+            db.session.commit()
+            flash("Teacher account created.", "success")
+            return redirect(url_for("teachers"))
+    rows = User.query.filter_by(role="teacher").order_by(User.full_name.asc()).all()
+    return render_template("teachers.html", teachers=rows)
+
+
 @app.route("/admin/fees", methods=["GET", "POST"])
 @admin_required
 def fees():
@@ -289,8 +282,10 @@ def fees():
 
 
 @app.route("/admin/payments", methods=["GET", "POST"])
-@admin_required
+@login_required
 def payments():
+    if current_user.role not in {"admin", "teacher"}:
+        abort(403)
     if request.method == "POST":
         fee = Fee.query.get_or_404(request.form.get("fee_id", type=int))
         try:
@@ -318,6 +313,20 @@ def payments():
     fee_rows = Fee.query.order_by(Fee.created_at.desc()).all()
     payment_rows = Payment.query.order_by(Payment.paid_at.desc()).limit(100).all()
     return render_template("payments.html", fees=fee_rows, payments=payment_rows)
+
+
+@app.route("/teacher")
+@login_required
+def teacher_dashboard():
+    if current_user.role != "teacher":
+        abort(403)
+    student_count = User.query.filter_by(role="student").count()
+    fee_total = db.session.query(func.coalesce(func.sum(Fee.total_amount), 0)).scalar()
+    paid_total = db.session.query(func.coalesce(func.sum(Payment.amount), 0)).scalar()
+    outstanding = Decimal(str(fee_total)) - Decimal(str(paid_total))
+    recent = Payment.query.order_by(Payment.paid_at.desc()).limit(8).all()
+    return render_template("teacher_dashboard.html", student_count=student_count, fee_total=fee_total,
+                           paid_total=paid_total, outstanding=max(Decimal("0.00"), outstanding), recent=recent)
 
 
 @app.route("/admin/reports")
