@@ -13,16 +13,20 @@
 {% if current_user.is_authenticated %}
 <div class="app-shell">
   <aside class="sidebar" id="sidebar">
-    <a class="brand" href="{{ url_for('admin_dashboard' if current_user.role == 'admin' else 'student_dashboard') }}">
+    <a class="brand" href="{{ url_for('admin_dashboard' if current_user.role == 'admin' else ('teacher_dashboard' if current_user.role == 'teacher' else 'student_dashboard')) }}">
       <span class="brand-mark">CF</span><span><strong>Campus Finance</strong><small>Fee management</small></span>
     </a>
     <div class="side-label">WORKSPACE</div>
     {% if current_user.role == 'admin' %}
       <a class="nav-link" href="{{ url_for('admin_dashboard') }}">Overview</a>
       <a class="nav-link" href="{{ url_for('students') }}">Students</a>
+      <a class="nav-link" href="{{ url_for('teachers') }}">Teachers</a>
       <a class="nav-link" href="{{ url_for('fees') }}">Fee assignments</a>
       <a class="nav-link" href="{{ url_for('payments') }}">Payments</a>
       <a class="nav-link" href="{{ url_for('reports') }}">Reports</a>
+    {% elif current_user.role == 'teacher' %}
+      <a class="nav-link" href="{{ url_for('teacher_dashboard') }}">Overview</a>
+      <a class="nav-link" href="{{ url_for('payments') }}">Payments</a>
     {% else %}
       <a class="nav-link" href="{{ url_for('student_dashboard') }}">My fee summary</a>
       <a class="nav-link" href="{{ url_for('student_receipts') }}">My receipts</a>
