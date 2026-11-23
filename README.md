@@ -17,14 +17,10 @@ A Flask + PostgreSQL college fee administration application with separate admini
 
 ## Requirements
 - Python 3.10+
-- Supabase PostgreSQL project
+- Aiven PostgreSQL project
 - VS Code or another Python editor
 
 ## 1. Configure Aiven PostgreSQL
-This repository is configured for the Supabase project in the Mumbai region.
-
-Project reference: `tgoxglzjwwvigvahoxml`
-
 In the Aiven Console, open your PostgreSQL service and copy its connection details. The production deployment uses the Aiven service host, port, database name and user configured in Vercel. Never share the database password in chat or commit it to GitHub.
 
 ## 2. Set up Python
@@ -53,7 +49,7 @@ Edit `.env`:
 If your database password contains special characters, URL-encode the password portion before placing it in the connection string.
 
 ## 3. Create tables and administrator
-The Supabase database has the application tables provisioned. To create or synchronize the schema from the Flask models, run:
+The application creates its tables during the protected first-admin setup. To create or synchronize the schema manually, run:
 ```bash
 flask --app app init-db
 flask --app app create-admin
