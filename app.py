@@ -173,6 +173,41 @@ def register():
     return redirect(url_for("login"))
 
 
+@app.route("/setup-once", methods=["GET", "POST"])
+def setup_once():
+    # Temporary, token-protected first-admin bootstrap for a fresh database.
+    bootstrap_token = os.getenv("BOOTSTRAP_TOKEN", "")
+    if not bootstrap_token or User.query.filter_by(role="admin").first():
+        abort(404)
+    if request.method == "POST":
+        supplied = request.form.get("token", "")
+        if not secrets.compare_digest(supplied, bootstrap_token):
+            abort(404)
+        name = request.form.get("full_name", "").strip()
+        email = request.form.get("email", "").strip().lower()
+        password = request.form.get("password", "")
+        if not name or not email or len(password) < 12:
+            flash("Enter your name, email and a password of at least 12 characters.", "error")
+            return render_template("setup_once.html")
+        try:
+            db.create_all()
+            if User.query.filter_by(role="admin").first():
+                abort(404)
+            if User.query.filter_by(email=email).first():
+                flash("That email is already registered. Contact support.", "error")
+                return render_template("setup_once.html")
+            db.session.add(User(full_name=name, email=email,
+                                password_hash=generate_password_hash(password), role="admin"))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            app.logger.exception("First-admin setup failed")
+            abort(503)
+        flash("Administrator created. Please sign in.", "success")
+        return redirect(url_for("login"))
+    return render_template("setup_once.html")
+
+
 @app.post("/logout")
 @login_required
 def logout():
