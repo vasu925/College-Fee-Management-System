@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Teachers | Campus Finance{% endblock %}
+{% block page_heading %}Teachers{% endblock %}
+{% block content %}
+<div class="page-heading"><div><div class="eyebrow">STAFF DIRECTORY</div><h1>Teachers</h1><p>Create staff accounts for fee collection and student fee lookup.</p></div></div>
+<div class="two-column">
+<section class="panel">
+  <div class="section-head"><div><h2>Add teacher</h2><p>Share the temporary password privately.</p></div></div>
+  <form method="post" class="form-stack compact">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label>Full name<input name="full_name" required maxlength="120"></label>
+    <label>Email address<input type="email" name="email" required maxlength="160"></label>
+    <label>Temporary password<input type="password" name="password" minlength="12" required><small>At least 12 characters.</small></label>
+    <button class="button primary" type="submit">Create teacher account</button>
+  </form>
+</section>
+<section class="panel">
+  <div class="section-head"><div><h2>Teacher directory</h2><p>{{ teachers|length }} teacher(s)</p></div></div>
+  <div class="table-wrap"><table><thead><tr><th>Name</th><th>Email</th></tr></thead><tbody>
+  {% for t in teachers %}<tr><td>{{ t.full_name }}</td><td>{{ t.email }}</td></tr>{% else %}<tr><td colspan="2" class="empty-cell">No teachers added yet.</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+</div>
+{% endblock %}
