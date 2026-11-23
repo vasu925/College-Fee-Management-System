@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Sign in | Campus Finance{% endblock %}
+{% block content %}
+<section class="login-layout">
+  <div class="login-aside">
+    <div class="brand brand-light"><span class="brand-mark">CF</span><span><strong>Campus Finance</strong><small>College fee management</small></span></div>
+    <div class="login-intro">
+      <div class="eyebrow">INSTITUTIONAL FINANCE PORTAL</div>
+      <h1>Fee records, clearly managed.</h1>
+      <p>A secure workspace for authorized college staff and students to review fee assignments, payment records and receipts.</p>
+    </div>
+    <div class="aside-note">Access is provided by your college administrator.</div>
+  </div>
+  <div class="login-panel">
+    <div class="form-wrap">
+      <div class="eyebrow">WELCOME</div>
+      <h2>Sign in to your account</h2>
+      <p class="muted">Use the email address and password issued to you.</p>
+      <form method="post" class="form-stack">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label>Email address<input type="email" name="email" autocomplete="username" required maxlength="160" placeholder="name@college.edu"></label>
+        <label>Password<input type="password" name="password" autocomplete="current-password" required></label>
+        <button class="button primary full" type="submit">Sign in</button>
+      </form>
+      <p class="login-help">Need access? Contact your college administrator. Self-service registration is disabled.</p>
+    </div>
+  </div>
+</section>
+{% endblock %}
