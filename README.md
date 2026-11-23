@@ -1,6 +1,6 @@
 # College Fee Management System
 
-A Flask + Supabase PostgreSQL college fee administration application with separate administrator and student access.
+A Flask + PostgreSQL college fee administration application with separate administrator and student access.
 
 ## Included
 - Administrator login and student login
@@ -20,12 +20,12 @@ A Flask + Supabase PostgreSQL college fee administration application with separa
 - Supabase PostgreSQL project
 - VS Code or another Python editor
 
-## 1. Configure Supabase
+## 1. Configure Aiven PostgreSQL
 This repository is configured for the Supabase project in the Mumbai region.
 
 Project reference: `tgoxglzjwwvigvahoxml`
 
-In Supabase Dashboard, open **Project Settings > Database** and copy the database password/connection details. Do not share the password in chat or commit it to GitHub.
+In the Aiven Console, open your PostgreSQL service and copy its connection details. The production deployment uses the Aiven service host, port, database name and user configured in Vercel. Never share the database password in chat or commit it to GitHub.
 
 ## 2. Set up Python
 Windows PowerShell:
@@ -46,14 +46,14 @@ cp .env.example .env
 
 Edit `.env`:
 - Set `SECRET_KEY` to a long random secret.
-- Replace `YOUR_DATABASE_PASSWORD` in `DATABASE_URL` with the database password from Supabase.
-- Keep the connection string format as `postgresql+psycopg://postgres:PASSWORD@db.tgoxglzjwwvigvahoxml.supabase.co:5432/postgres?sslmode=require`.
+- Set `DATABASE_URL` to the PostgreSQL connection URI copied from Aiven, using the current Aiven password.
+- Use the SQLAlchemy/psycopg format `postgresql+psycopg://avnadmin:URL_ENCODED_PASSWORD@YOUR_AIVEN_HOST:YOUR_AIVEN_PORT/defaultdb?sslmode=require`. Keep the host and port exactly as shown by your Aiven service.
 - Keep `COOKIE_SECURE=false` only for local HTTP development.
 
 If your database password contains special characters, URL-encode the password portion before placing it in the connection string.
 
 ## 3. Create tables and administrator
-The Supabase database has the application tables provisioned. To synchronize/verify the schema from the Flask models, run:
+The Supabase database has the application tables provisioned. To create or synchronize the schema from the Flask models, run:
 ```bash
 flask --app app init-db
 flask --app app create-admin
@@ -74,7 +74,7 @@ This build records payments that the college has actually received through an of
 ## Before public launch
 This source package is not a live deployment. Do not publish it with sample `.env` values. Before launch:
 1. Deploy behind HTTPS and set `COOKIE_SECURE=true`.
-2. Set a strong production `SECRET_KEY` and production Supabase database credentials in the hosting provider's secret manager.
+2. Set a strong production `SECRET_KEY` and production Aiven PostgreSQL credentials in the hosting provider's secret manager.
 3. Connect a domain you own, update DNS at your registrar and verify HTTPS.
 4. Replace the college identity/contact placeholders in the legal pages with approved institutional details and have the college review them.
 5. Add the final institution name/logo and update the receipt heading.
@@ -86,3 +86,11 @@ This source package is not a live deployment. Do not publish it with sample `.en
 - Use real student data only with institutional authorization.
 - The privacy and terms pages are starter templates, not legal advice or a substitute for institutional approval.
 - Do not use this system as the sole financial ledger until the college has tested and approved its reconciliation process.
+
+
+## Database connectivity check
+After deployment, open `/health/db` on the deployed site. A successful connection returns:
+```json
+{"status":"ok","database":"connected"}
+```
+A 503 response means the configured database credentials, host, port, database, TLS settings or network access still need attention. The endpoint never exposes credentials.
