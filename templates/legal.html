@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}{{ page_title }} | Campus Finance{% endblock %}
+{% block page_heading %}{{ page_title }}{% endblock %}
+{% block content %}
+<article class="legal-document">
+  <div class="eyebrow">CAMPUS FINANCE</div><h1>{{ page_title }}</h1>
+  {% if page_key == "privacy" %}
+  <p class="legal-updated">Starter policy template. Institutional details and approval are required before public launch.</p>
+  <h2>1. Information handled</h2><p>The portal may store student name, student ID, institutional email, department, academic year, fee assignments, payment amounts, payment methods, transaction references and receipt records.</p>
+  <h2>2. Purpose of use</h2><p>Information is used to administer student fee accounts, record payments received by the institution, provide receipts, support account queries and prepare institutional financial summaries.</p>
+  <h2>3. Access and disclosure</h2><p>Student accounts can view only their own fee and receipt information. Authorized administrators can manage student accounts, fee assignments and payment records. Information should not be shared outside authorized institutional purposes except where required by law or with appropriate authorization.</p>
+  <h2>4. Security and retention</h2><p>The application uses password hashing, role-based access checks and CSRF protection. The institution must configure HTTPS, strong production secrets, database backups, access reviews and a documented retention schedule before deployment.</p>
+  <h2>5. Accuracy and requests</h2><p>Students should contact the institution's accounts office to request correction of inaccurate fee or payment information. The institution should publish its approved contact details here.</p>
+  <h2>6. Contact</h2><p>Institution: [Insert approved college name]<br>Privacy contact: [Insert approved email and postal address]</p>
+  {% else %}
+  <p class="legal-updated">Starter terms template. Have the institution review and approve it before public launch.</p>
+  <h2>1. Authorized use</h2><p>This portal is intended for students and authorized staff of the institution. Users must keep their credentials confidential and must not attempt to access another person's account or records.</p>
+  <h2>2. Account administration</h2><p>Student accounts are created by authorized administrators. The institution may suspend or correct accounts where required for security, accuracy or administration.</p>
+  <h2>3. Fee and payment records</h2><p>Fee assignments and payment entries are maintained by authorized institutional staff. A receipt confirms a payment entry recorded in the portal; it is not, by itself, proof that an external bank or payment gateway processed a transaction.</p>
+  <h2>4. Accuracy and disputes</h2><p>Users should promptly report incorrect or disputed records to the institution's accounts office. The institution should verify records against its official financial records before making corrections.</p>
+  <h2>5. Availability and changes</h2><p>The institution may maintain, update or temporarily suspend the portal. The institution should communicate material changes to these terms through its approved channels.</p>
+  <h2>6. Institutional details</h2><p>Institution: [Insert approved college name]<br>Support contact: [Insert approved email and postal address]<br>Effective date: [Insert approval date]</p>
+  {% endif %}
+</article>
+{% endblock %}
